@@ -1,3 +1,13 @@
 <resources>
     <string name="app_name">MyCity</string>
+
+    <string name="cafeterias">Cafeterías</string>
+    <string name="bares">Bares</string>
+    <string name="restaurantes">Restaurantes</string>
+    <string name="parques">Parques</string>
+    <string name="centros_comerciales">Centros Comerciales</string>">
+
+
+
+
 </resources>
