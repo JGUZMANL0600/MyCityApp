@@ -6,6 +6,7 @@ import com.example.mycity.model.SubCategory
 
 object LocalCategoryDataProvider {
     val defaultCategory= getCategoryData()[0]
+    val defaultSubcategory= getCategoryData()[0].subCategories[0]
 
    fun getCategoryData() : List<Category> {
        return listOf(
@@ -17,9 +18,16 @@ object LocalCategoryDataProvider {
                    SubCategory(
                        id = 1,
                        name = R.string.cafe_tacuba,
-                       subCategoryIcon = R.drawable.ic_category_cafe,
+                       subCategoryIcon = R.drawable.ic_cafe_de_tacuba,
                        location = R.string.cafe_tacuba_location,
                        description = R.string.cafe_tacuba_description
+                   ),
+                   SubCategory(
+                       id = 2,
+                       name = R.string.cafe_jarocho,
+                       subCategoryIcon = R.drawable.ic_cafe_jarocho,
+                       location = R.string.cafe_jarocho_location,
+                       description = R.string.cafe_jarocho_description
                    )
                ),
            ),

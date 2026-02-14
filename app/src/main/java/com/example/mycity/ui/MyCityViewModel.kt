@@ -20,10 +20,26 @@ class MyCityViewModel : ViewModel() {
         _uiState.value =
             _uiState.value.copy(currentCategory = selectedCategory)
     }
+    fun navigateToSubcategoryPage() {
+        _uiState.value =
+            _uiState.value.copy(isShowingSubcategoryPage = true,
+                isShowingCategoryPage = false)
+
+    }
+    fun navigateToCategoryPage() {
+        _uiState.value =
+            _uiState.value.copy(isShowingSubcategoryPage = false,
+                isShowingCategoryPage = true)
+
+    }
 
 }
 
 data class MyCityUiState(
     val categoriesList: List<Category> = emptyList(),
-    val currentCategory: Category = LocalCategoryDataProvider.defaultCategory
+    val currentCategory: Category = LocalCategoryDataProvider.defaultCategory,
+    val isShowingCategoryPage: Boolean = true,
+    val isShowingSubcategoryPage: Boolean = false
+
+
 )

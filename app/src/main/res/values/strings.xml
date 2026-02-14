@@ -38,11 +38,10 @@
     <string name="cafe_quentin_description">
         Conocido por su ambiente relajado frente al camellón de Ámsterdam y su panadería deliciosa.
     </string>
-
-
-
-
-
+    <string name="detail_fragment_label">Reseña</string>
+    <string name="subcategory_fragment_label">Subcategorias</string>
+    <string name="category_fragment_label">Categorias</string>
+    <string name="back_button">Regresar</string>
 
 
 </resources>
