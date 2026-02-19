@@ -1,19 +1,25 @@
 package com.example.mycity.ui
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.calculateEndPadding
+import androidx.compose.foundation.layout.calculateStartPadding
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.ArrowBack
@@ -33,7 +39,10 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -79,10 +88,26 @@ fun MyCityApp(){
         else if (uiState.isShowingSubcategoryPage){
             SubcategoryList(
                 subcategory = uiState.currentCategory.subCategories,
-                onClick = {},
-                contentPadding = innerPadding
+                onClick = {
+                    viewModel.updateCurrentSubcategory(it)
+                    viewModel.navigateToDetailPage()
+                },
+                contentPadding = innerPadding,
+                onBackPressed = {
+                    viewModel.navigateToCategoryPage()
+                }
             )
 
+        }
+        else if(!uiState.isShowingCategoryPage && !uiState.isShowingSubcategoryPage){
+            SubcategoryDetail(
+                selectedSubcategory = uiState.currentSubcategory,
+                onBackPressed = {
+                    viewModel.navigateToSubcategoryPage()
+                },
+                contentPadding = innerPadding,
+            )
+        
         }
 
     }
@@ -241,9 +266,13 @@ private fun SubcategoryListItem(
 private fun SubcategoryList(
     subcategory:List<SubCategory>,
     onClick: (SubCategory) -> Unit,
+    onBackPressed: () -> Unit,
     modifier: Modifier = Modifier,
     contentPadding: PaddingValues = PaddingValues(0.dp)
 ){
+    BackHandler {
+        onBackPressed()
+    }
     LazyColumn(
         contentPadding = contentPadding,
         verticalArrangement = Arrangement.spacedBy(dimensionResource(R.dimen.padding_medium)),
@@ -259,6 +288,97 @@ private fun SubcategoryList(
     }
 
 }
+
+@Composable
+private fun SubcategoryDetail(
+    selectedSubcategory: SubCategory,
+    onBackPressed: () -> Unit,
+    contentPadding: PaddingValues,
+    modifier: Modifier = Modifier
+){
+    BackHandler {
+        onBackPressed()
+    }
+    val scrollState = rememberScrollState()
+    val layoutDirection = LocalLayoutDirection.current
+    Box(
+        modifier = modifier
+            .verticalScroll(state = scrollState)
+            .padding(top = contentPadding.calculateTopPadding())
+    ){
+        Column(
+            modifier = Modifier
+                .padding(
+                    bottom = contentPadding.calculateTopPadding(),
+                    start = contentPadding.calculateStartPadding(layoutDirection),
+                    end = contentPadding.calculateEndPadding(layoutDirection)
+                )
+        ){
+            Box {
+                Box {
+                    Image(
+                        painter = painterResource(selectedSubcategory.subCategoryIcon),
+                        contentDescription = null,
+                        alignment = Alignment.TopCenter,
+                        contentScale = ContentScale.FillWidth,
+                    )
+                }
+                    Column(
+                        Modifier
+                            .align(Alignment.BottomStart)
+                            .fillMaxWidth()
+                            .background(
+                                Brush.verticalGradient(
+                                    listOf(Color.Transparent, MaterialTheme.colorScheme.scrim),
+                                    0f,
+                                    400f
+                                )
+                            )
+                    ){
+                        Text(
+                            text = stringResource(selectedSubcategory.name),
+                            style = MaterialTheme.typography.headlineLarge,
+                            color = MaterialTheme.colorScheme.inverseOnSurface,
+                            modifier = Modifier
+                                .padding(horizontal = dimensionResource(R.dimen.padding_small))
+                        )
+                        Text(
+                            text = stringResource(selectedSubcategory.location),
+                            style = MaterialTheme.typography.titleLarge,
+                            color = MaterialTheme.colorScheme.inverseOnSurface,
+                            modifier = Modifier
+                                .padding(horizontal = dimensionResource(R.dimen.padding_small))
+                        )
+                    }
+
+
+            }
+            Text(
+                text = stringResource(selectedSubcategory.description),
+                style = MaterialTheme.typography.bodyMedium,
+                modifier = Modifier.padding(
+                    vertical = dimensionResource(R.dimen.padding_detail_content_vertical),
+                    horizontal = dimensionResource(R.dimen.padding_detail_content_horizontal)
+                )
+            )
+
+        }
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun SubcategoryDetailPreview(){
+    MyCityTheme {
+        SubcategoryDetail(
+            selectedSubcategory = LocalCategoryDataProvider.defaultSubcategory,
+            onBackPressed = {},
+            contentPadding = PaddingValues(0.dp)
+        )
+
+    }
+}
+
 
 @Preview(showBackground = true)
 @Composable
@@ -351,7 +471,8 @@ fun SubcategoryListPreview(){
         Surface() {
             SubcategoryList(
                 subcategory = LocalCategoryDataProvider.getCategoryData()[0].subCategories,
-                onClick = {}
+                onClick = {},
+                onBackPressed = {}
             )
         }
 
