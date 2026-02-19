@@ -3,6 +3,7 @@ package com.example.mycity.ui
 import androidx.lifecycle.ViewModel
 import com.example.mycity.data.LocalCategoryDataProvider
 import com.example.mycity.model.Category
+import com.example.mycity.model.SubCategory
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 
@@ -32,6 +33,15 @@ class MyCityViewModel : ViewModel() {
                 isShowingCategoryPage = true)
 
     }
+    fun updateCurrentSubcategory(selectedSubcategory: SubCategory) {
+        _uiState.value =
+            _uiState.value.copy(currentSubcategory = selectedSubcategory)
+    }
+    fun navigateToDetailPage(){
+        _uiState.value =
+            _uiState.value.copy(isShowingCategoryPage = false,
+                isShowingSubcategoryPage = false)
+    }
 
 }
 
@@ -39,7 +49,8 @@ data class MyCityUiState(
     val categoriesList: List<Category> = emptyList(),
     val currentCategory: Category = LocalCategoryDataProvider.defaultCategory,
     val isShowingCategoryPage: Boolean = true,
-    val isShowingSubcategoryPage: Boolean = false
+    val isShowingSubcategoryPage: Boolean = false,
+    val currentSubcategory: SubCategory = LocalCategoryDataProvider.defaultSubcategory
 
 
 )
