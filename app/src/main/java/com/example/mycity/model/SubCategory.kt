@@ -7,6 +7,7 @@ data class SubCategory(
     val id: Int,
     @StringRes val name: Int,
     @DrawableRes val subCategoryIcon: Int,
+    @DrawableRes val subCategoryBanner: Int,
     @StringRes val location: Int,
     @StringRes val description: Int
 )
