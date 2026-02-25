@@ -1,6 +1,11 @@
 package com.example.mycity.ui
 
 import androidx.activity.compose.BackHandler
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -17,6 +22,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -41,6 +47,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.dimensionResource
@@ -76,12 +83,20 @@ fun MyCityApp(){
     ) {
         innerPadding ->
         if (uiState.isShowingCategoryPage){
-            CategoryList(
+//            CategoryList(
+//                category = uiState.categoriesList,
+//                onClick = {
+//                    viewModel.updateCurrentCategory(it)
+//                    viewModel.navigateToSubcategoryPage()
+//                },
+//                contentPadding = innerPadding
+//            )
+            ExpandableList(
                 category = uiState.categoriesList,
-                onClick = {
+               onClick = {
                     viewModel.updateCurrentCategory(it)
-                    viewModel.navigateToSubcategoryPage()
-                },
+                   viewModel.expandCollapseCategory(it)
+               },
                 contentPadding = innerPadding
             )
         }
@@ -316,13 +331,7 @@ private fun SubcategoryDetail(
         ){
             Box {
                 Box {
-                    Image(
-                        painter = painterResource(selectedSubcategory.subCategoryIcon),
-                        contentDescription = null,
-                        alignment = Alignment.TopCenter,
-                        contentScale = ContentScale.FillWidth,
-                    )
-                }
+
                     Column(
                         Modifier
                             .align(Alignment.BottomStart)
@@ -335,6 +344,12 @@ private fun SubcategoryDetail(
                                 )
                             )
                     ){
+                        Image(
+                            painter = painterResource(selectedSubcategory.subCategoryBanner),
+                            contentDescription = null,
+                            alignment = Alignment.TopCenter,
+                            contentScale = ContentScale.FillWidth,
+                        )
                         Text(
                             text = stringResource(selectedSubcategory.name),
                             style = MaterialTheme.typography.headlineLarge,
@@ -350,6 +365,8 @@ private fun SubcategoryDetail(
                                 .padding(horizontal = dimensionResource(R.dimen.padding_small))
                         )
                     }
+                }
+
 
 
             }
@@ -365,6 +382,101 @@ private fun SubcategoryDetail(
         }
     }
 }
+
+@Composable
+private fun ExpandableList(
+    category:List<Category>,
+    onClick: (Category) -> Unit,
+    modifier: Modifier = Modifier,
+    contentPadding: PaddingValues = PaddingValues(0.dp)
+){
+
+
+        LazyColumn( contentPadding = contentPadding,
+            verticalArrangement = Arrangement.spacedBy(dimensionResource(R.dimen.padding_medium)),
+            modifier = modifier.padding(top = dimensionResource(R.dimen.padding_medium)),
+        ) {
+            items(items = category, key = {category -> category.id}){ category ->
+                ExpandableCategoryListItem(
+                    category = category,
+                    onItemClick = onClick
+                )
+            }
+
+        }
+
+
+}
+
+@Composable
+private fun ExpandableCategoryListItem(
+    category: Category,
+    onItemClick: (Category) -> Unit,
+    modifier: Modifier = Modifier
+){
+    Card(
+        elevation = CardDefaults.cardElevation(),
+        modifier = modifier,
+        shape = RoundedCornerShape(dimensionResource(R.dimen.card_corner_radius)),
+
+    ){
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .size(dimensionResource(R.dimen.card_image_height))
+
+        ) {
+            CategoryListImageItem(
+                category,
+                modifier = Modifier.size(dimensionResource(R.dimen.card_image_height))
+            )
+            Row(){
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .weight(1f),
+                    verticalArrangement = Arrangement.Center,
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Text(
+                        text = stringResource(category.name),
+                        style = MaterialTheme.typography.titleLarge,
+                        modifier = Modifier.padding(bottom = dimensionResource(R.dimen.card_text_vertical_space)),
+
+                        )
+                }
+                IconButton(onClick = { onItemClick(category)},
+                    modifier = Modifier.align(Alignment.CenterVertically)) {
+                    Icon(painter =
+                        if(!category.expanded)
+                            painterResource(R.drawable.arrow_downward)
+                        else
+                            painterResource(R.drawable.arrow_upward)
+                        ,
+                        contentDescription = null)
+                }
+
+            }
+
+
+
+        }
+
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun ExpandableListPreview(){
+    MyCityTheme {
+        ExpandableList(
+            category = LocalCategoryDataProvider.getCategoryData(),
+            onClick = {}
+        )
+
+    }
+}
+
 
 @Preview(showBackground = true)
 @Composable
@@ -385,6 +497,17 @@ fun SubcategoryDetailPreview(){
 fun CategoryListItemPreview(){
     MyCityTheme {
         CategoryListItem(
+            category = LocalCategoryDataProvider.defaultCategory,
+            onItemClick = {}
+        )
+
+    }
+}
+@Preview(showBackground = true)
+@Composable
+fun ExpandableCategoryListItemPreview(){
+    MyCityTheme {
+        ExpandableCategoryListItem(
             category = LocalCategoryDataProvider.defaultCategory,
             onItemClick = {}
         )

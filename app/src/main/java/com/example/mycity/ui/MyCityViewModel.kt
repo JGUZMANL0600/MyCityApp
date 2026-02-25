@@ -6,6 +6,7 @@ import com.example.mycity.model.Category
 import com.example.mycity.model.SubCategory
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.update
 
 class MyCityViewModel : ViewModel() {
     private val _uiState = MutableStateFlow(
@@ -13,6 +14,7 @@ class MyCityViewModel : ViewModel() {
             categoriesList = LocalCategoryDataProvider.getCategoryData(),
             currentCategory = LocalCategoryDataProvider.getCategoryData().getOrElse(0){
                 LocalCategoryDataProvider.defaultCategory
+
             }
         )
     )
@@ -43,6 +45,19 @@ class MyCityViewModel : ViewModel() {
                 isShowingSubcategoryPage = false)
     }
 
+    fun expandCollapseCategory(categoryToUpdate: Category) {
+        _uiState.update { currentState ->
+            val updatedCategories = currentState.categoriesList.map {
+                if (it.id == categoryToUpdate.id) {
+                    it.copy(expanded = !it.expanded)
+                } else {
+                    it
+                }
+            }
+            currentState.copy(categoriesList = updatedCategories)
+        }
+    }
+
 }
 
 data class MyCityUiState(
@@ -51,6 +66,4 @@ data class MyCityUiState(
     val isShowingCategoryPage: Boolean = true,
     val isShowingSubcategoryPage: Boolean = false,
     val currentSubcategory: SubCategory = LocalCategoryDataProvider.defaultSubcategory
-
-
 )

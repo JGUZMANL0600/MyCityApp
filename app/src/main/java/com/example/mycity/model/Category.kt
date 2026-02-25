@@ -7,5 +7,6 @@ data class Category(
     val id: Int,
     @StringRes val name: Int,
     @DrawableRes val categoryIcon: Int,
-    val subCategories: List<SubCategory>
+    val subCategories: List<SubCategory>,
+    var expanded: Boolean
 )
