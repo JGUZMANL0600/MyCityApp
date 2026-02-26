@@ -14,7 +14,7 @@ object LocalCategoryDataProvider {
                 id = 1,
                 name = R.string.cafeterias,
                 categoryIcon = R.drawable.ic_category_cafe,
-                expanded = true,
+                expanded = false,
                 subCategories = listOf(
                     SubCategory(
                         id = 1,

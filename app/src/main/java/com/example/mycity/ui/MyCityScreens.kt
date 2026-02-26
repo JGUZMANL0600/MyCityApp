@@ -2,10 +2,12 @@ package com.example.mycity.ui
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -30,6 +32,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.Card
+import androidx.compose.material3.CardColors
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -91,14 +94,32 @@ fun MyCityApp(){
 //                },
 //                contentPadding = innerPadding
 //            )
-            ExpandableList(
-                category = uiState.categoriesList,
-               onClick = {
-                    viewModel.updateCurrentCategory(it)
-                   viewModel.expandCollapseCategory(it)
-               },
-                contentPadding = innerPadding
-            )
+            Row(modifier = Modifier){
+                ExpandableList(
+                    categories = uiState.categoriesList,
+                    onCategoryClick = {
+                        viewModel.updateCurrentCategory(it)
+                        viewModel.expandCollapseCategory(it)
+                    },
+                    subcategories = uiState.currentCategory.subCategories,
+                    onSubcategoryClick = {
+                        viewModel.updateCurrentSubcategory(it)
+                    },
+                    contentPadding = innerPadding,
+                    modifier = Modifier.weight(2f),
+                    currentSubcategories = uiState.currentSubcategory
+                )
+                SubcategoryDetail(
+                    selectedSubcategory = uiState.currentSubcategory,
+                    onBackPressed = {
+
+                    },
+                    contentPadding = innerPadding,
+                    modifier = Modifier.weight(3f)
+                )
+                
+            }
+
         }
         else if (uiState.isShowingSubcategoryPage){
             SubcategoryList(
@@ -110,7 +131,8 @@ fun MyCityApp(){
                 contentPadding = innerPadding,
                 onBackPressed = {
                     viewModel.navigateToCategoryPage()
-                }
+                },
+                currentSubcategory = uiState.currentSubcategory
             )
 
         }
@@ -237,13 +259,21 @@ private fun SubcategoryListImageItem(
 private fun SubcategoryListItem(
     subcategory: SubCategory,
     onItemClick: (SubCategory) -> Unit,
+    isSelected:Boolean = false,
     modifier: Modifier = Modifier
 ){
     Card(
         elevation = CardDefaults.cardElevation(),
         modifier = modifier,
         shape = RoundedCornerShape(dimensionResource(R.dimen.card_corner_radius)),
-        onClick = { onItemClick(subcategory) }
+        onClick = { onItemClick(subcategory) },
+        colors = CardDefaults.cardColors(
+            containerColor = if (isSelected) MaterialTheme.colorScheme.primaryContainer
+            else MaterialTheme.colorScheme.surface
+        ),
+        border = if (isSelected) BorderStroke(2.dp, MaterialTheme.colorScheme.primary)
+        else null,
+
     ){
         Row(
             modifier = Modifier
@@ -283,7 +313,8 @@ private fun SubcategoryList(
     onClick: (SubCategory) -> Unit,
     onBackPressed: () -> Unit,
     modifier: Modifier = Modifier,
-    contentPadding: PaddingValues = PaddingValues(0.dp)
+    contentPadding: PaddingValues = PaddingValues(0.dp),
+    currentSubcategory: SubCategory = LocalCategoryDataProvider.defaultSubcategory
 ){
     BackHandler {
         onBackPressed()
@@ -293,10 +324,11 @@ private fun SubcategoryList(
         verticalArrangement = Arrangement.spacedBy(dimensionResource(R.dimen.padding_medium)),
         modifier = modifier.padding(top = dimensionResource(R.dimen.padding_medium)),
     ){
-        items(items = subcategory, key = {subcategory -> subcategory.id}){ subcategory ->
+        items(items = subcategory, key = {subcategory -> subcategory.id} ){ subcategory ->
             SubcategoryListItem(
                 subcategory = subcategory,
-                onItemClick = onClick
+                onItemClick = onClick,
+                isSelected = subcategory == currentSubcategory
             )
         }
 
@@ -385,23 +417,42 @@ private fun SubcategoryDetail(
 
 @Composable
 private fun ExpandableList(
-    category:List<Category>,
-    onClick: (Category) -> Unit,
+    categories:List<Category>,
+    subcategories: List<SubCategory>,
+    onSubcategoryClick: (SubCategory) -> Unit,
+    onCategoryClick: (Category) -> Unit,
     modifier: Modifier = Modifier,
-    contentPadding: PaddingValues = PaddingValues(0.dp)
-){
+    contentPadding: PaddingValues = PaddingValues(0.dp),
+    currentSubcategories: SubCategory,
+
+    ){
 
 
         LazyColumn( contentPadding = contentPadding,
             verticalArrangement = Arrangement.spacedBy(dimensionResource(R.dimen.padding_medium)),
-            modifier = modifier.padding(top = dimensionResource(R.dimen.padding_medium)),
+            modifier = modifier.padding(top = dimensionResource(R.dimen.padding_medium)).animateContentSize(),
         ) {
-            items(items = category, key = {category -> category.id}){ category ->
-                ExpandableCategoryListItem(
-                    category = category,
-                    onItemClick = onClick
-                )
+            categories.forEach { category ->
+                item {
+                    ExpandableCategoryListItem(
+                        category = category,
+                        onItemClick = onCategoryClick
+                    )
+                }
+                if (category.expanded) {
+                    items(category.subCategories) { subCategory ->
+                        SubcategoryListItem(
+                            subcategory = subCategory,
+                            onItemClick = onSubcategoryClick,
+                            modifier = Modifier.padding(start = dimensionResource(R.dimen.padding_medium)),
+                            isSelected = subCategory == currentSubcategories
+                        )
+                    }
+                }
             }
+
+
+
 
         }
 
@@ -470,8 +521,12 @@ private fun ExpandableCategoryListItem(
 fun ExpandableListPreview(){
     MyCityTheme {
         ExpandableList(
-            category = LocalCategoryDataProvider.getCategoryData(),
-            onClick = {}
+            categories = LocalCategoryDataProvider.getCategoryData(),
+            subcategories = LocalCategoryDataProvider.getCategoryData()[0].subCategories,
+            onCategoryClick = {},
+            onSubcategoryClick = {},
+            currentSubcategories = LocalCategoryDataProvider.defaultSubcategory,
+
         )
 
     }
@@ -581,7 +636,8 @@ fun SubcategoryListItemPreview(){
     MyCityTheme {
         SubcategoryListItem(
             subcategory = LocalCategoryDataProvider.defaultSubcategory,
-            onItemClick = {}
+            onItemClick = {},
+            isSelected = true
         )
 
     }
